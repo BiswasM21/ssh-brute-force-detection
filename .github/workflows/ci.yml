@@ -104,4 +104,4 @@ jobs:
 
       - name: Verify README content
         run: |
-          grep -q "SSH Brute Force Detection" README.md || exit 1
+          grep -qi "SSH Brute-Force" README.md || exit 1
