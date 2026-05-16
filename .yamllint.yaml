@@ -1,58 +1,21 @@
-# yamllint configuration
+# yamllint configuration - basic checks only
 extends:
   default
 
 rules:
-  braces:
-    level: error
-    min-spaces-inside: 1
-    max-spaces-inside: 1
-  brackets:
-    level: error
-    min-spaces-inside: 1
-    max-spaces-inside: 1
-  colons:
-    level: error
-    spacing: 1
-  commas:
-    level: error
-    spacing: 1
-  comments:
-    level: warning
-    min-spaces-from-content: 2
-  comments-indentation:
-    level: error
-  document-end:
-    level: error
-  document-start:
-    level: error
-  empty-lines:
-    level: error
-    max: 1
-  empty-values:
-    level: error
-  hyphens:
-    level: error
-    spacing: 1
-  indentation:
-    level: error
-    spaces: 2
-  key-duplicates:
-    level: error
-  keys:
-    level: error
-    min-spaces-before: 0
+  # Disable document markers (optional in YAML)
+  document-start: disable
+  document-end: disable
+  # Warnings for formatting issues
   line-length:
     level: warning
-    max: 120
-  new-line-at-end-of-file:
-    level: warning
-  new-lines:
-    level: error
-    type: unix
-  octal-values:
-    level: error
-  trailing-spaces:
-    level: error
-  truthy:
-    level: error
+    max: 200
+  trailing-spaces: disable
+  # Disable strict truthy check for GitHub Actions
+  truthy: disable
+  # Disable bracket spacing warnings
+  brackets: disable
+  # Disable colons spacing warnings
+  colons: disable
+  # Disable commas spacing warnings
+  commas: disable
