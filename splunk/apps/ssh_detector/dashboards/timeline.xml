@@ -1,0 +1,121 @@
+<dashboard>
+  <label>SSH Detector - Timeline</label>
+  <description>Historical timeline view of SSH attacks</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-7d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+
+    <input type="dropdown" token="granularity">
+      <label>Time Granularity</label>
+      <choice value="1h">Hourly</choice>
+      <choice value="1d">Daily</choice>
+      <choice value="1w">Weekly</choice>
+      <default>1h</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Attack Volume Over Time</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| timechart span=$granularity$ count by action</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">area</option>
+        <option name="stackMode">stacked</option>
+        <option name="refresh.display">progress</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Daily Attack Summary</title>
+      <table>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| eval date=strftime(_time, "%Y-%m-%d")
+| stats
+    count as total_events,
+    sum(eval(action="failed")) as failed,
+    sum(eval(action="success")) as success,
+    dc(eval(action="failed")) as attacking_ips,
+    dc(user) as targeted_users
+by date
+| eval success_rate=round(success/(success+failed)*100, 2)
+| sort - date</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <fields>date, total_events, failed, success, attacking_ips, targeted_users, success_rate</fields>
+        <option name="showPager">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Weekly Comparison</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| eval week=strftime(_time, "%Y-W%V")
+| stats count by week, action
+| xyseries week action count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">column</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Peak Attack Times</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| eval hour=strftime(_time, "%H")
+| eval day=strftime(_time, "%A")
+| stats count by day, hour
+| sort hour
+| xyseries day hour count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">heatmap</option>
+        <option name="wrap">false</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Trend Analysis</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| bucket _time span=1d
+| stats count as daily_attacks
+| trendline sma5(daily_attacks) as trend_5day
+| trendline sma10(daily_attacks) as trend_10day
+| fields _time, daily_attacks, trend_5day, trend_10day</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">line</option>
+        <option name="lineWidth">2</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>

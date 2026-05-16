@@ -1,0 +1,7 @@
+auth_type,description,security_note
+password,Standard password authentication,Commonly attacked
+publickey,SSH key authentication,More secure than password
+keyboard-interactive,Interactive keyboard authentication,May indicate scripted attack
+gssapi-keyex,GSSAPI key exchange,Rarely used in attacks
+gssapi-with-mic,GSSAPI authentication with MIC,Rarely targeted
+hostbased,Host-based authentication,High trust, rarely used

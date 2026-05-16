@@ -1,0 +1,42 @@
+FROM centos:stream9
+
+LABEL maintainer="SSH BFD Project"
+LABEL description="SSH Target (CentOS) for brute-force detection"
+
+# Install OpenSSH server and fail2ban
+RUN dnf install -y \
+    openssh-server \
+    openssh-clients \
+    fail2ban \
+    rsyslog \
+    vim \
+    curl \
+    wget \
+    && dnf clean all
+
+# Configure SSH
+RUN mkdir /var/run/sshd
+RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+RUN echo "LogLevel VERBOSE" >> /etc/ssh/sshd_config
+RUN echo "MaxAuthTries 10" >> /etc/ssh/sshd_config
+
+# Create test user
+RUN useradd -m -s /bin/bash testuser && \
+    echo 'testuser:TestPass123!' | chpasswd
+
+# Configure fail2ban
+COPY configs/jail.local /etc/fail2ban/jail.local
+
+# Configure rsyslog
+RUN echo "auth.* /var/log/secure" >> /etc/rsyslog.conf
+RUN echo "authpriv.* /var/log/secure" >> /etc/rsyslog.conf
+
+# Expose SSH port
+EXPOSE 22
+
+# Log directory
+VOLUME ["/var/log"]
+
+# Start services
+CMD /usr/sbin/rsyslogd && /usr/sbin/sshd -D

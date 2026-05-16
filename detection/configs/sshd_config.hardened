@@ -1,0 +1,62 @@
+# Hardened SSHD Configuration for SSH Brute-Force Detection Targets
+
+# =============================================================================
+# SSH Server Hardened Configuration
+# =============================================================================
+
+# Authentication Settings
+PermitRootLogin no
+MaxAuthTries 5
+MaxSessions 10
+PasswordAuthentication yes
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Protocol and Encryption
+Protocol 2
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+
+# Logging Configuration
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# Connection Settings
+ClientAliveInterval 300
+ClientAliveCountMax 2
+TCPKeepAlive yes
+Compression delayed
+
+# Security Options
+X11Forwarding no
+AllowTcpForwarding no
+PermitUserEnvironment no
+PrintMotd no
+PrintLastLog yes
+StrictModes yes
+UseDNS no
+VerifyReverseMapping no
+
+# Banner
+Banner /etc/ssh/banner
+
+# Allow specific users/groups (configure as needed)
+# AllowUsers admin deploy monitoring
+# AllowGroups sshusers
+
+# Login grace time
+LoginGraceTime 30
+
+# Subsystem
+Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Disable unused authentication methods
+HostbasedAuthentication no
+PubkeyAuthentication yes
+KerberosAuthentication no
+GSSAPIAuthentication no

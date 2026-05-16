@@ -1,0 +1,150 @@
+<dashboard>
+  <label>SSH Detector - Attack Analysis</label>
+  <description>Detailed analysis of SSH brute-force attacks</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+
+    <input type="dropdown" token="src_ip">
+      <label>Attacker IP</label>
+      <search>
+        <query>index=ssh_security sourcetype=sshd_auth action=failed
+| stats count by src_ip
+| sort - count
+| head 50</query>
+      </search>
+      <fieldForLabel>src_ip</fieldForLabel>
+      <fieldForValue>src_ip</fieldForValue>
+      <default>*</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Attack Velocity (Attacks per Minute)</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| where src_ip="$src_ip$" OR "$src_ip$"="*"
+| timechart span=1m count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">line</option>
+        <option name="lineWidth">2</option>
+        <option name="refresh.display">progress</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Attack Distribution by Hour</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| eval hour=strftime(_time, "%H")
+| stats count by hour
+| sort hour</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Brute Force Pattern Analysis</title>
+      <table>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| stats count, min(_time) as first_attack, max(_time) as last_attack,
+    values(user) as targets, dc(user) as unique_users by src_ip
+| where count > 5
+| eval duration=round((last_attack-first_attack)/60, 2)
+| eval rate=round(count/duration, 2)
+| sort - count
+| head 50</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <fields>src_ip, count, duration, rate, unique_users, targets</fields>
+        <option name="showPager">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Credential Analysis</title>
+      <table>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| stats count by user, src_ip
+| sort - count
+| head 100</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <fields>src_ip, user, count</fields>
+        <option name="showPager">true</option>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Session Analysis</title>
+      <table>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| search action=failed OR action=success
+| sort 0 _time
+| streamstats window=20 current=f latest(action) as last_action,
+    values(action) as actions, count as attempt_count by src_ip, user
+| search last_action=success AND attempt_count > 1
+| table _time src_ip user attempt_count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <fields>_time, src_ip, user, attempt_count</fields>
+        <option name="showPager">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Attack Techniques Used</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| rex field=_raw "method:\s+(?<method>\w+)"
+| if(isnull(method), "unknown", method) as auth_method
+| stats count by auth_method</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">pie</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Target Distribution</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| stats count by dest_ip
+| sort - count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">bar</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>

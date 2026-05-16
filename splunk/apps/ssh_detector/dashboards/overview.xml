@@ -1,0 +1,171 @@
+<dashboard>
+  <label>SSH Detector - Overview</label>
+  <description>Main dashboard for SSH brute-force attack monitoring</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Attack Summary</title>
+      <single>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| stats count as total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberFormatting">comma</option>
+        <option name="useColors">false</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Failed Attempts</title>
+      <single>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberFormatting">comma</option>
+        <option name="classField">level</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Successful Logins</title>
+      <single>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=success
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberFormatting">comma</option>
+        <option name="classField">level</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Unique Attackers</title>
+      <single>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| stats dc(src_ip) as unique_attackers</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberFormatting">comma</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Attack Timeline</title>
+      <chart>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| timechart span=5m count by action</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="chartType">area</option>
+        <option name="stackMode">stacked</option>
+        <option name="colors">["#53a051", "#dc4e41", "#3b5998"]</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top Attacking IPs</title>
+      <table>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| stats count as attempts by src_ip
+| sort - attempts
+| head 20
+| iplocation src_ip
+| eval link="<a href='/app/ssh_detector/investigate?q=search src_ip=\"$src_ip$\"' target='_blank'>Investigate</a>"</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <fields>src_ip, Country, City, attempts, link</fields>
+        <option name="showPager">true</option>
+        <option name="showRowNumbers">true</option>
+        <option name="wrap">false</option>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Top Targeted Users</title>
+      <table>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth
+| stats count by user, action
+| pivot index=ssh_security sourcetype=sshd_auth
+    count(action) AS "Total Attempts"
+    filter action to "failed"
+    BY user
+| sort - "Total Attempts"
+| head 20</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <fields>user, "Total Attempts"</fields>
+        <option name="showPager">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Attacks by Country</title>
+      <map>
+        <search>
+          <query>index=ssh_security sourcetype=sshd_auth action=failed
+| iplocation src_ip
+| stats count by Country, lat, lon
+| where Country!=""</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="clusterMarkers">true</option>
+        <option name="mapping.type">marker</option>
+        <option name="drilldown">zoom</option>
+      </map>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Recent Alerts</title>
+      <table>
+        <search>
+          <query>index=ssh_security alert_level=*
+| sort -_time
+| head 20
+| table _time src_ip user alert_level message</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="showPager">true</option>
+        <option name="rowNumbers">true</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

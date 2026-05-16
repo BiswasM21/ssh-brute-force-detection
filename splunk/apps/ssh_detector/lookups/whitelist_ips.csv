@@ -1,0 +1,6 @@
+ip,reason,added_by
+# Add trusted IPs in format:
+# ip,reason,added_by
+# Example:
+# 10.0.0.1,internal_network,admin
+# 192.168.1.50,security_scanner,security_team

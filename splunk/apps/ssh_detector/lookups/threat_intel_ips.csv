@@ -1,0 +1,6 @@
+ip,threat_type,confidence,last_seen,source
+# Known malicious IPs for threat intelligence
+# Format: ip,threat_type,confidence,last_seen,source
+# Example:
+# 185.220.101.1,tor_exit_node,high,2024-01-15,community
+# 45.227.44.50,brute_force,high,2024-01-14,blocklist

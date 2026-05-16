@@ -1,0 +1,18 @@
+[]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[views]
+access = read : [ * ], write : [ admin ]
+
+[dashboards]
+access = read : [ * ], write : [ admin ]
+
+[alerts]
+access = read : [ * ], write : [ admin, power ]
+
+[savedsearches]
+access = read : [ * ], write : [ admin, power ]
+
+[manager]
+access = read : [ admin ], write : [ admin ]

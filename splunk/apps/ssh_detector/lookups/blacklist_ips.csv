@@ -1,0 +1,5 @@
+ip,reason,added_date,expires,added_by
+# Add blocked IPs in format:
+# ip,reason,added_date,expires,added_by
+# Example:
+# 192.168.1.100,brute_force,2024-01-15,2024-02-15,admin

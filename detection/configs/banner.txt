@@ -1,0 +1,12 @@
+#######################################################################
+#                           AUTHORIZED ACCESS                           #
+#######################################################################
+#                                                                     #
+#  This system is for authorized use only.                            #
+#                                                                     #
+#  All activities are monitored and logged.                            #
+#  Unauthorized access attempts will be reported.                      #
+#                                                                     #
+#  If you are not authorized to access this system, disconnect now.  #
+#                                                                     #
+#######################################################################

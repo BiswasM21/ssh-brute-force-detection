@@ -1,0 +1,21 @@
+# Python dependencies for testing and scripts
+
+# Core testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-timeout>=2.1.0
+
+# HTTP client
+requests>=2.31.0
+
+# CLI utilities
+colorama>=0.4.6
+tabulate>=0.9.0
+
+# Security (if needed for scripts)
+paramiko>=3.3.0
+cryptography>=41.0.0
+
+# Code quality
+flake8>=6.1.0
+black>=23.7.0

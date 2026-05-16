@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # Splunk SIEM Instance
+  splunk:
+    image: splunk/splunk:latest
+    container_name: ssh-bfd-splunk
+    environment:
+      SPLUNK_START_ARGS: --accept-license
+      SPLUNK_USERNAME: admin
+      SPLUNK_PASSWORD: SplunkPass123!
+      SPLUNK_APPS_URL: http://splunk-app-base/ssh_detector.tar
+    ports:
+      - "8000:8000"     # Splunk Web
+      - "8089:8089"     # Splunk Management
+      - "9997:9997"     # Splunk Forwarder
+      - "8088:8088"     # Splunk HEC
+    volumes:
+      - splunk_etc:/opt/splunk/etc
+      - splunk_var:/opt/splunk/var
+      - ./splunk/apps:/opt/splunk/etc/apps
+      - ./logs:/logs
+    networks:
+      - ssh-bfd-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+
+  # Kali Linux Attacker
+  kali-attacker:
+    build:
+      context: ./kali-attacker
+      dockerfile: Dockerfile
+    container_name: ssh-bfd-kali
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - ./attack-scripts:/scripts
+      - ./logs:/logs
+    networks:
+      - ssh-bfd-net
+    environment:
+      TARGET_IP: ssh-target-1
+      TARGET_PORT: 22
+    command: tail -f /dev/null  # Keep container running
+    restart: unless-stopped
+
+  # SSH Target 1 (Ubuntu)
+  ssh-target-1:
+    build:
+      context: ./ssh-target
+      dockerfile: Dockerfile.ubuntu
+    container_name: ssh-bfd-target-1
+    hostname: ssh-target-1
+    ports:
+      - "2222:22"
+    volumes:
+      - ./logs:/var/log
+      - ./detection/configs:/configs
+    networks:
+      - ssh-bfd-net
+    environment:
+      SSH_USERS: "testuser:TestPass123!"
+      FAIL2BAN_ENABLED: "true"
+    restart: unless-stopped
+
+  # SSH Target 2 (CentOS)
+  ssh-target-2:
+    build:
+      context: ./ssh-target
+      dockerfile: Dockerfile.centos
+    container_name: ssh-bfd-target-2
+    hostname: ssh-target-2
+    ports:
+      - "2223:22"
+    volumes:
+      - ./logs:/var/log
+      - ./detection/configs:/configs
+    networks:
+      - ssh-bfd-net
+    environment:
+      SSH_USERS: "testuser:TestPass123!"
+      FAIL2BAN_ENABLED: "true"
+    restart: unless-stopped
+
+  # Splunk Forwarder (for log collection)
+  splunk-forwarder:
+    image: splunk/universalforwarder:latest
+    container_name: ssh-bfd-forwarder
+    environment:
+      SPLUNK_START_ARGS: --accept-license
+      SPLUNK_SERVER: splunk
+      SPLUNK_SERVER_PORT: 9997
+    volumes:
+      - ./logs:/logs
+      - /var/log:/var/log:ro
+    networks:
+      - ssh-bfd-net
+    depends_on:
+      - splunk
+    restart: unless-stopped
+
+networks:
+  ssh-bfd-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  splunk_etc:
+    driver: local
+  splunk_var:
+    driver: local
