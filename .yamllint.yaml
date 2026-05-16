@@ -1,61 +1,58 @@
 # yamllint configuration
-
 extends:
   default
-  rules:
-    braces:
-      level: error
-      min-spaces-inside: 1
-      max-spaces-inside: 1
-    brackets:
-      level: error
-      min-spaces-inside: 1
-      max-spaces-inside: 1
-    colons:
-      level: error
-      spacing: 1
-    commas:
-      level: error
-      spacing: 1
-    comments:
-      level: warning
-      min-spaces-from-content: 2
-    comments-indentation:
-      level: error
-    document-end:
-      level: error
-    document-start:
-      level: error
-    empty-lines:
-      level: error
-      max: 1
-    empty-values:
-      level: error
-    hyphens:
-      level: error
-      spacing: 1
-    indentation:
-      level: error
-      spaces: 2
-    key-duplicates:
-      level: error
-    keys:
-      level: error
-      min-spaces-before: 0
-    line-length:
-      level: warning
-      max: 120
-      allow-non-breakable-inline-mappings: true
-    new-line-at-end-of-file:
-      level: warning
-    new-lines:
-      level: error
-      type: unix
-    octal-values:
-      level: error
-    spaces:
-      level: error
-    trailing-spaces:
-      level: error
-    truthy:
-      level: error
+
+rules:
+  braces:
+    level: error
+    min-spaces-inside: 1
+    max-spaces-inside: 1
+  brackets:
+    level: error
+    min-spaces-inside: 1
+    max-spaces-inside: 1
+  colons:
+    level: error
+    spacing: 1
+  commas:
+    level: error
+    spacing: 1
+  comments:
+    level: warning
+    min-spaces-from-content: 2
+  comments-indentation:
+    level: error
+  document-end:
+    level: error
+  document-start:
+    level: error
+  empty-lines:
+    level: error
+    max: 1
+  empty-values:
+    level: error
+  hyphens:
+    level: error
+    spacing: 1
+  indentation:
+    level: error
+    spaces: 2
+  key-duplicates:
+    level: error
+  keys:
+    level: error
+    min-spaces-before: 0
+  line-length:
+    level: warning
+    max: 120
+  new-line-at-end-of-file:
+    level: warning
+  new-lines:
+    level: error
+    type: unix
+  octal-values:
+    level: error
+  trailing-spaces:
+    level: error
+  truthy:
+    level: error
